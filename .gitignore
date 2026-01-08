@@ -1,0 +1,39 @@
+# =========================
+# Python artifacts
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+
+# =========================
+# Virtual environments
+# =========================
+.venv/
+venv/
+
+# =========================
+# Jupyter / temp files
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Data (do NOT commit large or generated files)
+# =========================
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# =========================
+# Model artifacts and outputs
+# =========================
+outputs/*
+!outputs/.gitkeep
+
+# =========================
+# OS / editor files
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
