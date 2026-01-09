@@ -71,20 +71,20 @@ Below is an example output from a 10,000-simulation run:
 
 | Team | Super Bowl Win % |
 |------|------------------|
-| GB   | 53.49% |
-| SF   | 20.70% |
-| LAC  | 9.00% |
-| LA   | 6.97% |
-| PIT  | 3.72% |
-| SEA  | 1.87% |
-| CAR  | 1.17% |
-| BUF  | 1.17% |
-| PHI  | 0.71% |
-| CHI  | 0.51% |
-| DEN  | 0.36% |
-| HOU  | 0.20% |
-| JAX  | 0.07% |
-| NE   | 0.06% |
+| GB   | 25.06% |
+| PIT  | 24.14% |
+| BUF  | 15.34% |
+| CHI  | 10.55% |
+| JAX  | 8.33% |
+| LA   | 3.48% |
+| SF   | 3.34% |
+| LAC  | 2.99% |
+| NE   | 2.40% |
+| SEA  | 1.90% |
+| PHI  | 1.65% |
+| CAR  | 0.74% |
+| DEN  | 0.07% |
+| HOU  | 0.02% |
 
 Probabilities reflect both team strength and playoff structure (seeding, home-field advantage, and matchup paths).
 
