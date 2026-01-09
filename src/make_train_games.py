@@ -39,6 +39,24 @@ def add_rolling_features(stats: pd.DataFrame) -> pd.DataFrame:
     return feat
 
 
+def moneyline_to_prob(ml: float) -> float:
+    """
+    Convert American moneyline odds to implied win probability (no vig removal).
+    Example: -150 -> 0.60, +130 -> ~0.435
+    """
+    if ml is None or (isinstance(ml, float) and np.isnan(ml)):
+        return 0.0
+    try:
+        ml = float(ml)
+    except Exception:
+        return 0.0
+
+    if ml < 0:
+        return (-ml) / ((-ml) + 100.0)
+    else:
+        return 100.0 / (ml + 100.0)
+
+
 def main():
     sched = pd.read_csv(SCHED_PATH)
     stats = pd.read_csv(STATS_PATH)
@@ -84,17 +102,63 @@ def main():
     g["div_game"] = g["div_game"].astype(int)
     g["home_field"] = 1
 
-    g["spread_line_home"] = pd.to_numeric(g["spread_line"], errors="coerce").fillna(0.0)
+    # spread feature (already in your pipeline)
+    g["spread_line_home"] = pd.to_numeric(g.get("spread_line", np.nan), errors="coerce").fillna(0.0)
 
-    feature_cols = diff_cols + ["rest_diff", "div_game", "home_field", "spread_line_home"]
+    # ---- NEW: MONEYLINE / MARKET IMPLIED PROB FEATURES ----
+    # Try common column names; if missing, fill with 0 so the pipeline still runs.
+    home_ml_col = None
+    away_ml_col = None
+
+    for c in ["home_moneyline", "home_ml", "moneyline_home", "home_money_line"]:
+        if c in g.columns:
+            home_ml_col = c
+            break
+
+    for c in ["away_moneyline", "away_ml", "moneyline_away", "away_money_line"]:
+        if c in g.columns:
+            away_ml_col = c
+            break
+
+    if home_ml_col is not None:
+        g["home_moneyline"] = pd.to_numeric(g[home_ml_col], errors="coerce")
+    else:
+        g["home_moneyline"] = np.nan
+
+    if away_ml_col is not None:
+        g["away_moneyline"] = pd.to_numeric(g[away_ml_col], errors="coerce")
+    else:
+        g["away_moneyline"] = np.nan
+
+    g["market_home_prob"] = g["home_moneyline"].apply(moneyline_to_prob).astype("float64")
+    g["market_away_prob"] = g["away_moneyline"].apply(moneyline_to_prob).astype("float64")
+    g["market_prob_diff"] = (g["market_home_prob"] - g["market_away_prob"]).astype("float64")
+    # ------------------------------------------------------
+
+    feature_cols = diff_cols + [
+        "rest_diff",
+        "div_game",
+        "home_field",
+        "spread_line_home",
+        "market_prob_diff",
+    ]
 
     out = g[["season", "week", "home_team", "away_team", "home_win"] + feature_cols].copy()
+    out = out.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
     out.to_csv("data/processed/train_games.csv", index=False)
 
     print("Saved: data/processed/train_games.csv")
     print("Feature columns:", len(feature_cols))
     print("Has spread_line_home:", "spread_line_home" in out.columns)
+    print("Has market_prob_diff:", "market_prob_diff" in out.columns)
 
+import pandas as pd
+
+df = pd.read_csv("data/processed/train_games.csv")
+
+print(df["market_prob_diff"].describe())
+print("Percent zero:", (df["market_prob_diff"] == 0).mean())
 
 if __name__ == "__main__":
     main()
